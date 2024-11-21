@@ -1,0 +1,5 @@
+Flask
+flask-cors
+SpeechRecognition
+numpy
+matplotlib  # Optional: If you want to visualize data using matplotlib

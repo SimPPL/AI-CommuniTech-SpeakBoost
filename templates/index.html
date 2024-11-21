@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>SpeakBoost</title>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="SpeakBoost Logo">
+            <span>SpeakBoost</span>
+        </div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="#about">About</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="#contact">Contact Us</a>
+        </nav>
+        <a href="/dashboard" class="sign-up">Sign Up</a>
+    </header>
+    <main id="home">
+        <div class="content">
+            <h1>Analyze. Improve. Excel in Every Conversation with <span class="highlight">SpeakBoost</span>.</h1>
+            <p>Speak Boost is an AI-powered tool that enhances your communication by analyzing tone, pace, and filler words. It helps you speak more confidently and effectively in any situation.</p>
+            <a href="/dashboard" class="cta-button">Get Started</a>
+        </div>
+        <div class="illustration">
+            <img src="../static/images/Illustration 1.png" alt="Person using computer with various icons">
+        </div>
+    </main>
+    <section class="features">
+        <h2>Improve Your Professional Communication Skills</h2>
+        <div class="feature-grid">
+            <div class="feature">Build Confidence</div>
+            <div class="feature">Communicate Clearly</div>
+            <div class="feature">Analyze Speech Patterns</div>
+            <div class="feature">Measure Words Per Minute</div>
+            <div class="feature">Understand Your Tone</div>
+            <div class="feature">Enhance Presentation Skills</div>
+            <div class="feature">Monitor Progress</div>
+        </div>
+    </section>
+    <section class="how-it-works" id="about">
+        <div class="section2">
+            <img src="../static/images/Illustration 2.png" alt="Person with laptop and headphones">
+            <h2 class="scenario2-text">How <span class="highlight">Speak Boost</span> AI Communication Bot Works.</h2>
+        </div>
+        <div class="text-and-bubble">
+            <div class="scenario-options">
+                <div class="scenario">Upcoming speech and presentation</div>
+                <div class="scenario">Interview Preparation</div>
+                <div class="scenario">Sales and Marketing</div>
+            </div>
+            <div class="speech-bubble">
+                Choose a Scenario/Role
+                <p>Customize your conversation partner and speaking goals</p>
+            </div>
+        </div>
+        <div class="how-to-record">
+            <img src="../static/images/avatar.png" alt="User avatar" class="avatar">
+            <div class="speech-bubble-2" id="bubble-1">
+                Record Your Speech
+            </div>
+            <div class="speech-bubble-2" id="bubble-2">
+                <img src="../static/images/wave.png" alt="">
+            </div>
+        </div>
+    </section>
+    <section class="real-time-analysis"></section>
+    <div class="section3">
+        <div class="charts">
+            <div class="chart" id="chart1">
+                <img src="../static/images/graph2.png" alt="Line chart showing speech analysis over time">
+            </div>
+            <div class="chart" id="chart2">
+                <img src="../static/images/graph1.png" alt="Bar chart showing speech metrics">
+            </div>
+        </div>
+        <div class="section3-text">
+            <h2>Get Real Time AI Bot Feedback and <span class="highlight">Speech Analysis</span></h2>
+            <p>Provide a network for all your needs with ease and fun using LaslesVPN discover interesting features from us.</p>
+        </div>
+    </div>
+    <div id="contact" class="sign-up-box">
+        <div>
+            <h3>Sign Up for Free</h3>
+            <p>Let's subscribe with us and find the fun.</p>
+        </div>
+        <a href="/dashboard" class="sign-up-button">Sign Up</a>
+    </div>
+
+    <div class="footer">
+        <div class="bottom-description">
+            <img src="../static/images/logo.png" alt="SpeakBoost logo">
+            <p>Speak Boost is an AI-powered tool that enhances your communication by analyzing tone, pace, and filler words. It helps you speak more confidently and effectively in any situation.</p>
+        </div>
+    </div>
+    </section>
+</body>
+</html>

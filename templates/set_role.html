@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --input-bg: #1E1E1E;
+            --text-primary: #E0E0E0;
+            --accent-color: #ff4f4f;
+            --hover-color: #e63939;
+        }
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Rubik', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.13) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.101) 1px, transparent 1px);
+            background-size: 80px 80px;
+        }
+
+        .container {
+            background-color: var(--input-bg);
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        input, select {
+            width: 100%; /* Make it consistent with the form width */
+            padding: 12px;
+            height: 48px; /* Ensure a uniform height */
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            box-sizing: border-box; /* Prevents padding from affecting size */
+        }
+
+        .btn {
+            display: block;
+            font-size: 1.1rem;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--hover-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Complete Your Profile</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <select name="role" id="role" required>
+                    <option value="Student">Student</option>
+                    <option value="Teacher">Teacher</option>
+                    <option value="Podcaster">Podcaster</option>
+                    <option value="Social Media Influencer">Social Media Influencer</option>
+                    <option value="Early Career Professional">Early Career Professional</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input type="number" name="age" id="age" min="13" max="120" required>
+            </div>
+            <div class="form-group">
+                <label for="interests">Interests (comma-separated):</label>
+                <input type="text" name="interests" id="interests" placeholder="e.g. public speaking, technology, music">
+            </div>
+            <div class="form-group">
+                <label for="communication_rating">Rate Your Communication Skills (1-10):</label>
+                <input type="number" name="communication_rating" id="communication_rating" min="1" max="10" required>
+            </div>
+            <button type="submit" class="btn">Save Profile</button>
+        </form>
+    </div>
+</body>
+</html>

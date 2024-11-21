@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>SpeakBoost - Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent-color: #ff4f4f;
+            --text-light: #f5f5f5;
+            --hover-color: #e63939;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+        }
+
+        /* Sticky Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            z-index: 1000;
+            border-right: 1px solid white;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Sidebar Design */
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+        }
+
+        .logo span {
+            font-weight: bold;
+            font-size: 22px;
+            color: var(--accent-color);
+        }
+
+        .menu {
+            list-style-type: none;
+            flex-grow: 1;
+        }
+
+        .menu li {
+            margin-bottom: 10px;
+        }
+
+        .menu li a {
+            text-decoration: none;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu li a i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .menu li a:hover, .menu li.active a {
+            background-color: rgba(255,79,79,0.2);
+            color: var(--accent-color);
+        }
+
+        .main-content {
+            flex: 1;
+            /* padding: 20px; */
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .record-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background-color: #ff4f4f;
+            color: #121212;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background-color: #e63939;
+            transform: scale(1.1);
+        }
+
+        .upload-btn {
+            background-color: #1e1e1e;
+            border: 2px solid #ff4f4f;
+            color: #ff4f4f;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background-color: #ff4f4f;
+            color: #121212;
+        }
+
+        .upload-btn img {
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+        }
+
+        .record-btn {
+            background-color: #ff4f4f;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .record-btn:hover {
+            background-color: #e63939;
+            transform: scale(1.05);
+        }
+
+        .transcript {
+            margin-top: 20px;
+        }
+
+        .analyse-btn {
+            background-color: #ff4f4f;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .analyse-btn:hover {
+            background-color: #e63939;
+            transform: scale(1.05);
+        }
+
+
+        .logout-btn {
+            color: #ff4f4f;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            color: #e63939;
+        }
+
+        .user-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            text-align: left;  
+            display: flex;    
+            align-items: center; 
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;  
+        }
+        
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f5f5f5;
+            text-transform: uppercase;
+        }
+        .headbar{
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            font-size: 2rem;
+            /* border-bottom: 1px solid white; */
+        }
+        .meeting-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+        }
+
+        .video-grid {
+            display: flex;
+            justify-content: space-between;
+            height: 50%;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .participant-box {
+            flex: 1;
+            background-color: var(--bg-secondary);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container {
+            flex-grow: 1;
+            background-color: rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .video-container video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .video-container img{
+            max-width: 40%;
+            max-height: 40%;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .camera-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 20%;
+            width: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .camera-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+        .transcript-section {
+            margin-top: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 15px;
+            height: 25%;
+            overflow-y: auto;
+        }
+
+        .ai-label {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        #transcript {
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="SpeakBoost Logo">
+            <span>SpeakBoost</span>
+        </div>
+        <ul class="menu">
+            <li>
+                <a href="#"><i class="fas fa-home"></i>Dashboard</a>
+            </li>
+            <li>
+                <a href="/"><i class="fas fa-house-user"></i>Home</a>
+            </li>
+            <li class="active">
+                <a href="/dashboard"><i class="fas fa-chart-line"></i>Analysis</a>
+            </li>
+            <li>
+                <a href="/reports"><i class="fas fa-file"></i>Report</a>
+            </li>
+            <li>
+                <a href="#"><i class="fas fa-dumbbell"></i>Exercises</a>
+            </li>
+            <li>
+                <a href="/profile"><i class="fas fa-user-circle"></i>Profile</a>
+            </li>
+            <li>
+                <a href="/logout"><i class="fa fa-sign-out"></i>Logout</a>
+            </li>
+        </ul>
+        <div class="user-info">
+            <img src="{{ avatar_url }}" alt="User Avatar" class="user-avatar">
+            <span class="user-name">{{ username }}</span>
+        </div>
+    </div>
+    <main class="main-content">
+        <h2 class="headbar">Real-Time Meeting Analysis</h2>
+        <div class="meeting-container">
+            <div class="video-grid">
+                <div class="participant-box">
+                    <div class="ai-label">{{ username }}</div>
+                    <div class="video-container" id="user-video-container">
+                        <img src="{{ avatar_url }}" alt="User Avatar" id="user-avatar">
+                        <video id="user-video" style="display:none;" autoplay playsinline></video>
+                    </div>
+                    <div class="camera-controls">
+                        <button class="camera-btn" onclick="toggleCamera()" id="camera-toggle">
+                            <i class="fas fa-video-slash"></i>
+                        </button>
+                        <button class="camera-btn" onclick="startRecording()">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="camera-btn" onclick="stopRecording()">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="participant-box">
+                    <div class="ai-label">AI Bot</div>
+                    <div class="video-container">
+                        <img src="../static/images/avatar.png" alt="AI Avatar">
+                    </div>
+                    <div class="camera-controls">
+                        <button class="camera-btn" id="camera-toggle">
+                            <i class="fas fa-video-slash"></i>
+                        </button>
+                        <button class="camera-btn">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button class="camera-btn">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="transcript">Transcripts will appear here....</div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>
