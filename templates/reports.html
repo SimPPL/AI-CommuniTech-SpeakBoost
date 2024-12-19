@@ -207,13 +207,13 @@
                 <a href="/"><i class="fas fa-house-user"></i>Home</a>
             </li>
             <li>
-                <a href="/dashboard"><i class="fas fa-chart-line"></i>Analysis</a>
+                <a href="/speech-analysis"><i class="fas fa-chart-line"></i>Analysis</a>
             </li>
             <li class="active">
-                <a href="#"><i class="fas fa-file"></i>Report</a>
+                <a href="/reports"><i class="fas fa-file"></i>Report</a>
             </li>
             <li>
-                <a href="#"><i class="fas fa-dumbbell"></i>Exercises</a>
+                <a href="/exercises"><i class="fas fa-dumbbell"></i>Exercises</a>
             </li>
             <li>
                 <a href="/profile"><i class="fas fa-user-circle"></i>Profile</a>
@@ -260,24 +260,20 @@
                             <div class="metric-value">{{ report.words_per_minute|round(2) }}</div>
                         </div>
                         <div class="metric-item">
-                            <div class="metric-label">Tone Energy</div>
-                            <div class="metric-value">{{ report.tone_energy|round(2) }}</div>
+                            <div class="metric-label">Filler Count</div>
+                            <div class="metric-value">{{ report.filler_count|round(2) }}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Sentiment</div>
+                            <div class="metric-value">{{ report.sentiment_compound|round(2) }}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Energy</div>
+                            <div class="metric-value">{{ report.audio_energy|round(2) }}</div>
                         </div>
                         <div class="metric-item">
                             <div class="metric-label">Pitch</div>
-                            <div class="metric-value">{{ report.pitch|round(2) }}</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-label">Pace</div>
-                            <div class="metric-value">{{ report.pace|round(2) }}</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-label">Positive Sentiment</div>
-                            <div class="metric-value">{{ report.sentiment_positive|round(2) }}%</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-label">Negative Sentiment</div>
-                            <div class="metric-value">{{ report.sentiment_negative|round(2) }}%</div>
+                            <div class="metric-value">{{ report.audio_pitch|round(2) }}%</div>
                         </div>
                     </div>
                     <div id="transcript" class="transcript-section">{{ report.transcript }}</div>

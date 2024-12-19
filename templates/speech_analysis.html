@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Speech Analysis</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent-color: #ff4f4f;
+            --text-light: #f5f5f5;
+            --hover-color: #e63939;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        /* Sticky Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            z-index: 1000;
+            border-right: 1px solid white;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Sidebar Design */
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+        }
+
+        .logo span {
+            font-weight: bold;
+            font-size: 22px;
+            color: var(--accent-color);
+        }
+
+        .menu {
+            list-style-type: none;
+            flex-grow: 1;
+        }
+
+        .menu li {
+            margin-bottom: 10px;
+        }
+
+        .menu li a {
+            text-decoration: none;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu li a i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .menu li a:hover, .menu li.active a {
+            background-color: rgba(255,79,79,0.2);
+            color: var(--accent-color);
+        }
+
+        /* .analysis-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        } */
+        
+        .scenario-selector {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 5px;
+        }
+
+        .scenario-card {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .scenario-card.selected {
+            border-color: var(--accent-color);
+            background-color: var(--hover-color);
+        }
+
+        .scenario-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .scenario-description {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .target-metrics {
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #666;
+        }
+        
+        .record-btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+        
+        .record-btn:disabled {
+            background-color: var(--hover-color);
+            cursor: not-allowed;
+        }
+        
+        .record-btn.recording {
+            background-color: #f44336;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .results-section {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .scenario-feedback {
+            text-decoration: none;
+            margin: 15px 0;
+            padding: 15px;
+            padding-left: 40px;
+            background-color: var(--bg-dark);
+            border-left: 4px solid #2196f3;
+        }
+        
+        .metric {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: var(--bg-dark);
+            border-radius: 3px;
+        }
+        
+        .metric-label {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
+        .transcription {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--bg-dark);
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .structure-issues {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #2f2f2f;
+            border-radius: 3px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .loading::after {
+            content: "⏳";
+            animation: loading 1s infinite;
+        }
+        
+        @keyframes loading {
+            0% { content: "⏳"; }
+            50% { content: "⌛"; }
+            100% { content: "⏳"; }
+        }
+
+        .tts-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--bg-dark);
+            border-radius: 5px;
+        }
+
+        .tts-button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .tts-button.play {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .tts-button.pause {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .tts-button.stop {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .tts-controls .slider-container {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tts-controls input[type="range"] {
+            flex-grow: 1;
+        }
+
+        .tts-controls label {
+            min-width: 60px;
+        }
+        .user-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            text-align: left;  
+            display: flex;    
+            align-items: center; 
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;  
+        }
+        
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f5f5f5;
+            text-transform: uppercase;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .scenario-feedback {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            padding-left: 40px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+        .results-section {
+            background-color: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-section h2 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .scenario-card {
+            background-color: var(--bg-dark);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .scenario-card:hover {
+            background-color: var(--card-hover);
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+        }
+
+        .scenario-card.selected {
+            border-color: var(--accent-color);
+            background-color: rgba(255,79,79,0.1);
+        }
+
+        .scenario-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .scenario-description {
+            color: var(--text-light);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .headbar {
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .meeting-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 15px;
+        }
+
+        .video-grid {
+            display: flex;
+            gap: 20px;
+            height: 300px;
+        }
+
+        .participant-box {
+            flex: 1;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .video-container img {
+            max-width: 40%;
+            max-height: 40%;
+        }
+
+        .ai-label {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            background-color: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 15px;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .camera-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .camera-btn:hover {
+            background-color: var(--hover-color);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="SpeakBoost Logo">
+            <span>SpeakBoost</span>
+        </div>
+        <ul class="menu">
+            <li>
+                <a href="#"><i class="fas fa-home"></i>Dashboard</a>
+            </li>
+            <li>
+                <a href="/"><i class="fas fa-house-user"></i>Home</a>
+            </li>
+            <li class="active">
+                <a href="/speech-analysis"><i class="fas fa-chart-line"></i>Analysis</a>
+            </li>
+            <li>
+                <a href="/reports"><i class="fas fa-file"></i>Report</a>
+            </li>
+            <li>
+                <a href="/exercises"><i class="fas fa-dumbbell"></i>Exercises</a>
+            </li>
+            <li>
+                <a href="/profile"><i class="fas fa-user-circle"></i>Profile</a>
+            </li>
+            <li>
+                <a href="/logout"><i class="fa fa-sign-out"></i>Logout</a>
+            </li>
+        </ul>
+        <div class="user-info">
+            <img src="{{ avatar_url }}" alt="User Avatar" class="user-avatar">
+            <span class="user-name">{{ username }}</span>
+        </div>
+    </div>
+    <!-- <div class="analysis-container">
+        <h1>Speech Analysis</h1> -->
+
+        <main class="main-content analysis-container">
+            <h2 class="headbar">Speech Analysis</h2>
+            <div class="meeting-container">
+                <div class="video-grid">
+                    <div class="participant-box">
+                        <div class="ai-label">{{ username }}</div>
+                        <div class="video-container">
+                            <img src="{{ avatar_url }}" alt="User Avatar" id="user-avatar">
+                        </div>
+                        <div class="camera-controls">
+                            <!-- <button class="camera-btn" onclick="toggleCamera()" id="camera-toggle">
+                                <i class="fas fa-video"></i>
+                            </button> -->
+                            <button id="recordButton" class="record-btn" disabled>Select a Scenario to Start</button>
+                            <!-- <button class="camera-btn" id="toggleMic">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button class="camera-btn" id="startRecording">
+                                <i class="fas fa-play"></i>
+                            </button> -->
+                        </div>
+                    </div>
+                    
+                    <div class="participant-box">
+                        <div class="ai-label">AI Assistant</div>
+                        <div class="video-container">
+                            <img src="../static/images/avatar.png" alt="AI Avatar">
+                        </div>
+                        <div class="camera-controls">
+                        <button id="startSessionButton" class="record-btn">Start Session</button>
+                    </div>
+                    </div>
+                </div>
+        
+        <div class="scenario-selector">
+            <h3>Select Your Scenario</h3>
+            <div id="scenarioCards" class="scenarios-grid"></div>
+        </div>
+
+        <div id="loading" class="loading">Processing your speech...</div>
+        
+        <div id="results" class="results-section">
+            <h3>Transcription</h3>
+            <div id="transcription" class="transcription"></div>
+
+            <h3>Scenario-Specific Feedback</h3>
+            <div id="scenarioFeedback" class="scenario-feedback"></div>
+            
+            <h3>Analysis Results</h3>
+            <!-- <div id="wordCount" class="metric">
+                <span class="metric-label">Word Count:</span>
+                <span class="metric-value"></span>
+            </div> -->
+            <div id="wpm" class="metric">
+                <span class="metric-label">Words Per Minute:</span>
+                <span class="metric-value"></span>
+            </div>
+            <div id="fillerWords" class="metric">
+                <span class="metric-label">Filler Words:</span>
+                <span class="metric-value"></span>
+            </div>
+            <div id="sentiment" class="metric">
+                <span class="metric-label">Sentiment:</span>
+                <span class="metric-value"></span>
+            </div>
+            <!-- <div id="audioEnergy" class="metric">
+                <span class="metric-label">Voice Energy:</span>
+                <span class="metric-value"></span>
+            </div>
+            <div id="audioPitch" class="metric">
+                <span class="metric-label">Voice Pitch (Hz):</span>
+                <span class="metric-value"></span>
+            </div> -->
+            <div id="structureIssues" class="structure-issues">
+                <h3>Sentence Structure Issues</h3>
+                <div id="issuesList"></div>
+            </div>
+
+            <div class="tts-controls">
+                <h3>Text-to-Speech Controls</h3>
+                <div class="slider-container">
+                    <label for="speechRate">Speed:</label>
+                    <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1">
+                    <span id="rateValue">1.0</span>
+                </div>
+                <div class="slider-container">
+                    <label for="speechPitch">Pitch:</label>
+                    <input type="range" id="speechPitch" min="0.5" max="2" step="0.1" value="1">
+                    <span id="pitchValue">1.0</span>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button id="playButton" class="tts-button play">Play Results</button>
+                    <button id="pauseButton" class="tts-button pause">Pause</button>
+                    <button id="stopButton" class="tts-button stop">Stop</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let videoStream = null;
+
+function toggleCamera() {
+    const videoContainer = document.getElementById('user-video-container');
+    const userAvatar = document.getElementById('user-avatar');
+    const userVideo = document.getElementById('user-video');
+    const cameraToggleBtn = document.getElementById('camera-toggle');
+
+    if (!videoStream) {
+        // Turn on camera
+        navigator.mediaDevices.getUserMedia({ 
+            video: true, 
+            audio: false 
+        })
+        .then(stream => {
+            videoStream = stream;
+            userVideo.srcObject = stream;
+            userVideo.style.display = 'block';
+            userAvatar.style.display = 'none';
+            
+            // Change button icon
+            cameraToggleBtn.innerHTML = '<i class="fas fa-video"></i>';
+        })
+        .catch(error => {
+            console.error('Error accessing camera:', error);
+            alert('Could not access camera. Please check permissions.');
+        });
+    } else {
+        // Turn off camera
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+        userVideo.style.display = 'none';
+        userAvatar.style.display = 'block';
+        
+        // Change button icon back
+        cameraToggleBtn.innerHTML = '<i class="fas fa-video-slash"></i>';
+    }
+}
+        const scenarios = [
+            {
+                id: 'interview',
+                title: 'Job Interview',
+                description: 'Practice for a job interview with clear, confident responses',
+                targetMetrics: {
+                    wpmRange: [120, 150],
+                    maxFillerPercentage: 0.03,
+                    tone: 'professional',
+                    duration: '1-2 minutes'
+                }
+            },
+            {
+                id: 'presentation',
+                title: 'Professional Presentation',
+                description: 'Deliver a clear, engaging presentation to an audience',
+                targetMetrics: {
+                    wpmRange: [130, 160],
+                    maxFillerPercentage: 0.02,
+                    tone: 'confident',
+                    duration: '2-5 minutes'
+                }
+            },
+            {
+                id: 'conversation',
+                title: 'Casual Conversation',
+                description: 'Practice natural, flowing conversation skills',
+                targetMetrics: {
+                    wpmRange: [140, 170],
+                    maxFillerPercentage: 0.05,
+                    tone: 'friendly',
+                    duration: '1-3 minutes'
+                }
+            },
+            {
+                id: 'story',
+                title: 'Storytelling',
+                description: 'Tell an engaging story with proper pacing and emotion',
+                targetMetrics: {
+                    wpmRange: [110, 140],
+                    maxFillerPercentage: 0.03,
+                    tone: 'engaging',
+                    duration: '2-4 minutes'
+                }
+            }
+        ];
+
+        let selectedScenario = null;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let sessionStarted = false;
+        
+        const scenarioCards = document.getElementById('scenarioCards');
+        const recordButton = document.getElementById('recordButton');
+        const startSessionButton = document.getElementById('startSessionButton');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        // Add event listener for start session button
+        startSessionButton.addEventListener('click', () => {
+            sessionStarted = true;
+            startSessionButton.style.display = 'none';
+            
+            // Create a synthesized speech message
+            const speechMessage = new SpeechSynthesisUtterance("Please select a scenario to begin your practice session.");
+            window.speechSynthesis.speak(speechMessage);
+            
+            // Highlight the scenario section
+            const scenarioSelector = document.querySelector('.scenario-selector');
+            scenarioSelector.style.animation = 'pulse 2s';
+            scenarioSelector.style.border = '2px solid var(--accent-color)';
+            
+            // Add pulse animation style if not already present
+            // if (!document.querySelector('#pulseAnimation')) {
+            //     const style = document.createElement('style');
+            //     style.id = 'pulseAnimation';
+            //     style.textContent = `
+            //         @keyframes pulse {
+            //             0% { box-shadow: 0 0 0 0 rgba(255, 79, 79, 0.4); }
+            //             70% { box-shadow: 0 0 0 10px rgba(255, 79, 79, 0); }
+            //             100% { box-shadow: 0 0 0 0 rgba(255, 79, 79, 0); }
+            //         }
+            //     `;
+            //     document.head.appendChild(style);
+            // }
+        });
+
+        // Modify the scenario card click handler
+        function createScenarioCards() {
+            scenarios.forEach(scenario => {
+                const card = document.createElement('div');
+                card.className = 'scenario-card';
+                card.innerHTML = `
+                    <div class="scenario-title">${scenario.title}</div>
+                    <div class="scenario-description">${scenario.description}</div>
+                    <div class="target-metrics">
+                        <div>Target Pace: ${scenario.targetMetrics.wpmRange[0]}-${scenario.targetMetrics.wpmRange[1]} WPM</div>
+                        <div>Maximum Filler Words: ${scenario.targetMetrics.maxFillerPercentage * 100}%</div>
+                        <div>Target Tone: ${scenario.targetMetrics.tone}</div>
+                        <div>Suggested Duration: ${scenario.targetMetrics.duration}</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    if (!sessionStarted) {
+                        const speechMessage = new SpeechSynthesisUtterance("Please click Start Session first to begin.");
+                        window.speechSynthesis.speak(speechMessage);
+                        return;
+                    }
+                    
+                    document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedScenario = scenario;
+                    recordButton.disabled = false;
+                    recordButton.textContent = 'Start Recording';
+                    
+                    // Remove the highlight from scenario selector
+                    const scenarioSelector = document.querySelector('.scenario-selector');
+                    scenarioSelector.style.animation = '';
+                    scenarioSelector.style.border = 'none';
+                });
+                
+                scenarioCards.appendChild(card);
+            });
+        }
+
+        // Initialize the scenario cards
+        createScenarioCards();
+
+        // Speech Synthesis Manager
+        class SpeechSynthesisManager {
+            constructor() {
+                this.synth = window.speechSynthesis;
+                this.utterance = null;
+                this.isPlaying = false;
+                
+                this.rateControl = document.getElementById('speechRate');
+                this.pitchControl = document.getElementById('speechPitch');
+                this.rateValue = document.getElementById('rateValue');
+                this.pitchValue = document.getElementById('pitchValue');
+                
+                this.playButton = document.getElementById('playButton');
+                this.pauseButton = document.getElementById('pauseButton');
+                this.stopButton = document.getElementById('stopButton');
+                
+                this.bindEventListeners();
+            }
+            
+            bindEventListeners() {
+                this.rateControl.addEventListener('input', () => {
+                    this.rateValue.textContent = this.rateControl.value;
+                    if (this.utterance) {
+                        this.utterance.rate = parseFloat(this.rateControl.value);
+                    }
+                });
+                
+                this.pitchControl.addEventListener('input', () => {
+                    this.pitchValue.textContent = this.pitchControl.value;
+                    if (this.utterance) {
+                        this.utterance.pitch = parseFloat(this.pitchControl.value);
+                    }
+                });
+                
+                this.playButton.addEventListener('click', () => this.play());
+                this.pauseButton.addEventListener('click', () => this.pause());
+                this.stopButton.addEventListener('click', () => this.stop());
+            }
+            
+            createUtterance(text) {
+                this.utterance = new SpeechSynthesisUtterance(text);
+                this.utterance.rate = parseFloat(this.rateControl.value);
+                this.utterance.pitch = parseFloat(this.pitchControl.value);
+                
+                this.utterance.onend = () => {
+                    this.isPlaying = false;
+                    this.playButton.textContent = 'Play Results';
+                };
+                
+                this.utterance.onerror = (event) => {
+                    console.error('Speech synthesis error:', event);
+                    this.isPlaying = false;
+                    this.playButton.textContent = 'Play Results';
+                };
+            }
+            
+            play(newText = null) {
+                if (newText) {
+                    this.stop();
+                    this.createUtterance(newText);
+                }
+                
+                if (!this.utterance) {
+                    const results = getCurrentResults();
+                    if (results) {
+                        this.createUtterance(results);
+                    } else {
+                        console.warn('No text to speak');
+                        return;
+                    }
+                }
+                
+                if (this.isPlaying) {
+                    this.synth.resume();
+                } else {
+                    this.synth.speak(this.utterance);
+                }
+                
+                this.isPlaying = true;
+                this.playButton.textContent = 'Resume';
+            }
+            
+            pause() {
+                if (this.isPlaying) {
+                    this.synth.pause();
+                    this.isPlaying = false;
+                    this.playButton.textContent = 'Resume';
+                }
+            }
+            
+            stop() {
+                this.synth.cancel();
+                this.isPlaying = false;
+                this.playButton.textContent = 'Play Results';
+            }
+        }
+
+        const speechManager = new SpeechSynthesisManager();
+
+        function getCurrentResults() {
+            const transcription = document.getElementById('transcription').textContent;
+            const wpm = document.getElementById('wpm').querySelector('.metric-value').textContent;
+            const fillerWords = document.getElementById('fillerWords').querySelector('.metric-value').textContent;
+            const sentiment = document.getElementById('sentiment').querySelector('.metric-value').textContent;
+            const scenarioFeedback = document.getElementById('scenarioFeedback').textContent;
+            // const energy = document.getElementById('audioEnergy').querySelector('.metric-value').textContent;
+            // const pitch = document.getElementById('audioPitch').querySelector('.metric-value').textContent;
+
+            return `
+                Here are your speech analysis results for the ${selectedScenario.title} scenario.
+                ${scenarioFeedback}
+                Your transcription: ${transcription}
+                Speaking rate: ${wpm}
+                Filler words: ${fillerWords}
+                Overall sentiment: ${sentiment}
+            `;
+        }
+
+        recordButton.addEventListener('click', toggleRecording);
+
+        async function toggleRecording() {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    startRecording(stream);
+                } catch (err) {
+                    console.error('Error accessing microphone:', err);
+                    alert('Error accessing microphone. Please ensure you have granted microphone permissions.');
+                }
+            } else {
+                stopRecording();
+            }
+        }
+        
+        function startRecording(stream) {
+            audioChunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                await sendAudioForAnalysis(audioBlob);
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            recordButton.textContent = 'Stop Recording';
+            recordButton.classList.add('recording');
+            
+            // Set recording time limit based on scenario duration
+            const durationMatch = selectedScenario.targetMetrics.duration.match(/(\d+)-(\d+)/);
+            const maxMinutes = parseInt(durationMatch[2]);
+            setTimeout(() => {
+                if (isRecording) {
+                    stopRecording();
+                }
+            }, maxMinutes * 60 * 1000);
+        }
+        
+        function stopRecording() {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            isRecording = false;
+            recordButton.textContent = 'Start Recording';
+            recordButton.classList.remove('recording');
+        }
+        
+        async function sendAudioForAnalysis(audioBlob) {
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'recording.wav');
+            formData.append('scenario', JSON.stringify(selectedScenario));
+            
+            try {
+                const response = await fetch('/process_speech_analysis', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Error analyzing audio:', error);
+                alert('Error analyzing audio. Please try again.');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function generateScenarioFeedback(data, scenario) {
+            const wpm = data.words_per_minute;
+            const fillerPercentage = data.filler_percentage || 0;
+            const sentiment = data.sentiment.compound || 0;
+
+            let feedback = `<h3>${scenario.title} Feedback:</h3><ul>`;
+
+            // Pace feedback
+            if (wpm < scenario.targetMetrics.wpmRange[0]) {
+                feedback += `<li>Your pace (${wpm.toFixed(1)} WPM) is slower than recommended for ${scenario.title}. Try speaking slightly faster.</li>`;
+            } else if (wpm > scenario.targetMetrics.wpmRange[1]) {
+                feedback += `<li>Your pace (${wpm.toFixed(1)} WPM) is faster than ideal for ${scenario.title}. Try slowing down slightly.</li>`;
+            } else {
+                feedback += `<li>Great job! Your speaking pace is perfect for ${scenario.title}.</li>`;
+            }
+
+            // Filler words feedback
+            if (fillerPercentage > scenario.targetMetrics.maxFillerPercentage) {
+                feedback += `<li>Try to reduce filler words (currently ${(fillerPercentage * 100).toFixed(1)}%). Focus on pausing instead of using filler words.</li>`;
+            } else {
+                feedback += `<li>Excellent control of filler words!</li>`;
+            }
+
+            // Scenario-specific feedback
+            switch (scenario.id) {
+                case 'interview':
+                    feedback += `<li>Keep responses clear and focused on demonstrating your qualifications.</li>`;
+                    if (sentiment < 0) {
+                        feedback += `<li>Try to maintain a more positive tone when discussing your experiences.</li>`;
+                    }
+                    break;
+                case 'presentation':
+                    feedback += `<li>Remember to vary your tone to maintain audience engagement.</li>`;
+                    if (data.audio_characteristics?.energy < 0.1) {
+                        feedback += `<li>Consider projecting your voice more for better audience reach.</li>`;
+                    }
+                    break;
+                case 'conversation':
+                    feedback += `<li>Natural flow and engagement level sound good.</li>`;
+                    break;
+                case 'story':
+                    feedback += `<li>Focus on building dramatic moments and maintaining listener interest.</li>`;
+                    if (Math.abs(sentiment) < 0.2) {
+                        feedback += `<li>Try to add more emotional variation to make the story more engaging.</li>`;
+                    }
+                    break;
+            }
+
+            feedback += '</ul>';
+            return feedback;
+        }
+        
+        function displayResults(data) {
+            document.getElementById('transcription').textContent = data.transcript;
+            // document.getElementById('wordCount').querySelector('.metric-value').textContent = data.word_count;
+            document.getElementById('wpm').querySelector('.metric-value').textContent = 
+                `${data.words_per_minute.toFixed(2)} WPM (${getPaceFeedback(data.words_per_minute, selectedScenario)})`;
+            document.getElementById('fillerWords').querySelector('.metric-value').textContent = 
+                `${data.filler_count || 0} (${((data.filler_percentage || 0) * 100).toFixed(2)}%)`;
+            document.getElementById('sentiment').querySelector('.metric-value').textContent = 
+                `${getSentimentLabel(data.sentiment)}`;
+            
+            // document.getElementById('audioEnergy').querySelector('.metric-value').textContent = 
+            //     `${(data.audio_energy * 100).toFixed(2)}% (${getEnergyLabel(data.audio_energy)})`;
+            // document.getElementById('audioPitch').querySelector('.metric-value').textContent = 
+            //     `${data.audio_pitch.toFixed(2)} (${getPitchLabel(data.audio_pitch)})`;
+            
+            const issuesList = document.getElementById('issuesList');
+            issuesList.innerHTML = '';
+            if (data.structure_issues && data.structure_issues.length > 0) {
+                data.structure_issues.forEach(issue => {
+                    const issueDiv = document.createElement('div');
+                    issueDiv.className = 'metric';
+                    issueDiv.innerHTML = `
+                        <p><strong>Context:</strong> ${issue.context}</p>
+                        <p><strong>Issue:</strong> ${issue.message}</p>
+                        <p><strong>Suggestion:</strong> ${issue.suggestions.join(', ')}</p>
+                    `;
+                    issuesList.appendChild(issueDiv);
+                });
+            } else {
+                issuesList.innerHTML = '<p>No structural issues found.</p>';
+            }
+
+            // Add scenario-specific feedback
+            const feedbackDiv = document.getElementById('scenarioFeedback');
+            const feedback = generateScenarioFeedback(data, selectedScenario);
+            feedbackDiv.innerHTML = feedback;
+            
+            results.style.display = 'block';
+
+            // Automatically speak the results
+            speechManager.play(getCurrentResults());
+        }
+        
+        function getPaceFeedback(wpm, scenario) {
+            if (wpm < scenario.targetMetrics.wpmRange[0]) return 'Too slow for this scenario';
+            if (wpm > scenario.targetMetrics.wpmRange[1]) return 'Too fast for this scenario';
+            return 'Perfect pace for this scenario';
+        }
+        
+        function getSentimentLabel(sentiment) {
+            const compound = sentiment.compound || 0;
+            if (compound > 0.1) return 'Positive';
+            if (compound < -0.1) return 'Negative';
+            return 'Neutral';
+        }
+
+        function getEnergyLabel(energy) {
+            if (energy < 0.03) return 'Very Soft';
+            if (energy < 0.05) return 'Soft';
+            if (energy < 0.08) return 'Moderate';
+            if (energy < 0.12) return 'Energetic';
+            return 'Very Energetic';
+        }
+
+        function getPitchLabel(pitch) {
+            if (pitch < 1000) return 'Low Range';
+            if (pitch < 1300) return 'Mid Range';
+            if (pitch < 1600) return 'High Range';
+            return 'Very High Range';
+        }
+    </script>
+</body>
+</html>

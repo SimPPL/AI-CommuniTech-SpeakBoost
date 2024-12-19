@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakBoost - Exercises</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent-color: #ff4f4f;
+            --text-light: #f5f5f5;
+            --hover-color: #e63939;
+            --success-color: #4CAF50;
+            --error-color: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            z-index: 1000;
+            border-right: 1px solid white;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 20px;
+            font-size: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+        }
+
+        .logo span {
+            font-weight: bold;
+            font-size: 22px;
+            color: var(--accent-color);
+        }
+
+        .menu {
+            list-style-type: none;
+            flex-grow: 1;
+        }
+
+        .menu li {
+            margin-bottom: 10px;
+        }
+
+        .menu li a {
+            text-decoration: none;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu li a i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .menu li a:hover, .menu li.active a {
+            background-color: rgba(255,79,79,0.2);
+            color: var(--accent-color);
+        }
+
+        .user-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f5f5f5;
+            text-transform: uppercase;
+        }
+
+        /* Exercise Specific Styles */
+        .exercises-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .exercise-card {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .exercise-category {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .exercise-question {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-label:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .option-input {
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .feedback.incorrect {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .page-title {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+        .headbar{
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            font-size: 2rem;
+            /* border-bottom: 1px solid white; */
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="SpeakBoost Logo">
+            <span>SpeakBoost</span>
+        </div>
+        <ul class="menu">
+            <li>
+                <a href="#"><i class="fas fa-home"></i>Dashboard</a>
+            </li>
+            <li>
+                <a href="/"><i class="fas fa-house-user"></i>Home</a>
+            </li>
+            <li>
+                <a href="/speech-analysis"><i class="fas fa-chart-line"></i>Analysis</a>
+            </li>
+            <li>
+                <a href="/reports"><i class="fas fa-file"></i>Report</a>
+            </li>
+            <li class="active">
+                <a href="/exercises"><i class="fas fa-dumbbell"></i>Exercises</a>
+            </li>
+            <li>
+                <a href="/profile"><i class="fas fa-user-circle"></i>Profile</a>
+            </li>
+            <li>
+                <a href="/logout"><i class="fa fa-sign-out"></i>Logout</a>
+            </li>
+        </ul>
+        <div class="user-info">
+            <img src="{{ avatar_url }}" alt="User Avatar" class="user-avatar">
+            <span class="user-name">{{ username }}</span>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <div class="exercises-container">
+            <h1 class="page-title headbar">Communication Skills Quiz</h1>
+            <div class="score-display">Score: <span id="score">0</span> / 7</div>
+            {% for exercise in exercises %}
+            <div class="exercise-card" id="exercise-{{ exercise.id }}">
+                <div class="exercise-category">{{ exercise.category }}</div>
+                <div class="exercise-question">{{ exercise.question }}</div>
+                <div class="options-container">
+                    {% for option in exercise.options %}
+                    <label class="option-label">
+                        <input type="radio" 
+                               name="question-{{ exercise.id }}" 
+                               value="{{ loop.index0 }}" 
+                               class="option-input">
+                        {{ option }}
+                    </label>
+                    {% endfor %}
+                </div>
+                <button class="submit-btn" onclick="checkAnswer({{ exercise.id }}, {{ exercise.correct }})">
+                    Submit Answer
+                </button>
+                <div class="feedback" id="feedback-{{ exercise.id }}"></div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <script>
+        let score = 0;
+        
+        function checkAnswer(questionId, correctAnswer) {
+            const selectedOption = document.querySelector(`input[name="question-${questionId}"]:checked`);
+            const feedbackElement = document.getElementById(`feedback-${questionId}`);
+            const scoreElement = document.getElementById('score');
+            
+            if (!selectedOption) {
+                alert('Please select an answer!');
+                return;
+            }
+            
+            const selectedAnswer = parseInt(selectedOption.value);
+            const isCorrect = selectedAnswer === correctAnswer;
+            
+            feedbackElement.style.display = 'block';
+            feedbackElement.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedbackElement.textContent = isCorrect ? 
+                'Correct! Well done!' : 
+                'Incorrect. Try again!';
+            
+            if (isCorrect && !selectedOption.hasAttribute('data-scored')) {
+                score++;
+                scoreElement.textContent = score;
+                selectedOption.setAttribute('data-scored', 'true');
+            }
+            
+            // Disable all options after submission
+            const options = document.querySelectorAll(`input[name="question-${questionId}"]`);
+            options.forEach(option => {
+                option.disabled = true;
+            });
+            
+            // Disable submit button
+            const submitBtn = feedbackElement.previousElementSibling;
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+        }
+    </script>
+</body>
+</html>

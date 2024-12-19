@@ -3,3 +3,8 @@ flask-cors
 SpeechRecognition
 numpy
 matplotlib  # Optional: If you want to visualize data using matplotlib
+SpeechRecognition
+pyttsx3
+vaderSentiment
+language_tool_python
+whisper
